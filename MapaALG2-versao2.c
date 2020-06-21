@@ -89,7 +89,8 @@ caixa *c;
 // ############## FUNCOES CRUD DA CAIXA ###################
 
 void inicializarCaixa(caixa* c, int tamCaixa) {
-    for(int i = 0; i<tamCaixa; i++) {
+int i;
+    for(i = 0; i<tamCaixa; i++) {
         (c+i)->inicio = NULL;
         (c+i)->fim = NULL;
         (c+i)->tamanho = 0;
@@ -218,7 +219,8 @@ void listarTodasAsObras(char *opcaoObra) {
     } else if (strcmp(opcaoObra,"REVISTA") == 0) {
         strcpy(nomeTipoObra,"REVISTA");
     }
-    for (int i = 0; i<qtdCaixas; i++) {
+    int i;
+    for (i = 0; i<qtdCaixas; i++) {
         caixaTmp = (c+i);
         contador = 0;
         elementoTmp = caixaTmp->inicio;
