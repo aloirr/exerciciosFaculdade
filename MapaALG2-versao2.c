@@ -68,7 +68,7 @@ typedef struct obraDados {
     char anoLancamento[TAM_STRING];
 } obraDados;
 
-// ESTRUTURA DA DADOS DO NÓ DA CAIXA
+// ESTRUTURA NÓ DA CAIXA
 typedef struct obraElemento {
 
     struct obraDados* dados_obra;
@@ -77,7 +77,7 @@ typedef struct obraElemento {
 
 } obraElemento;
 
-// ESTRUTURA DE DADOS DA CAIXA
+// ESTRUTURA DA CAIXA
 typedef struct caixa {
 
     obraElemento* inicio;
@@ -86,10 +86,10 @@ typedef struct caixa {
     int tamanho;
 } caixa;
 caixa *c;
-// ############## FUNCOES CRUD DA CAIXA ###################
 
+/* INICIALIZANDO TODAS AS CAIXAS */
 void inicializarCaixa(caixa* c, int tamCaixa) {
-int i;
+    int i;
     for(i = 0; i<tamCaixa; i++) {
         (c+i)->inicio = NULL;
         (c+i)->fim = NULL;
@@ -112,20 +112,17 @@ void addElementoCaixa(obraDados* dados) {
         (c+dados->caixa)->inicio = obraNovoElemento;
         (c+dados->caixa)->fim = obraNovoElemento;
         (c+dados->caixa)->tamanho++;
-
         return;
     } else {
-        obraElemento *obraNovoElemento;
-        obraNovoElemento = (obraElemento *) malloc(sizeof(obraElemento));
         obraNovoElemento->dados_obra = dados;
         obraNovoElemento->anterior = NULL;
         obraNovoElemento->seguinte = (c+dados->caixa)->inicio;
         (c+dados->caixa)->inicio->anterior = obraNovoElemento;
         (c+dados->caixa)->inicio = obraNovoElemento;
         (c+dados->caixa)->tamanho++;
-
         return;
     }
+    free(obraNovoElemento);
 }
 obraDados* registrarObra(int numCaixa) {
     obraDados* novaObra;
@@ -134,7 +131,6 @@ obraDados* registrarObra(int numCaixa) {
     while (opcaoObra != 1 && opcaoObra != 2) {
         printf("LIVRO OU REVISTA? (1 = LIVRO/2 = REVISTA): ");
         scanf("%d", &opcaoObra);
-        printf("%d",opcaoObra);
         getchar();
         if (opcaoObra == 1) {
             strcpy(novaObra->tipo_obra,"LIVRO");
@@ -167,22 +163,14 @@ obraDados* registrarObra(int numCaixa) {
     return novaObra;
 }
 void listarObraPorCaixa(int numCaixa, char *opcaoObra) {
-    system("clear");
     caixa *caixaTmp;
     caixaTmp = (caixa *) malloc (sizeof(caixa));
     obraElemento* elementoTmp;
-    elementoTmp = (obraElemento *) malloc (qtdCaixas * sizeof(obraElemento));
+    elementoTmp = (obraElemento *) malloc (sizeof(obraElemento));
     int contador;
-    char nomeTipoObra[TAM_STRING];
-    if (strcmp(opcaoObra,"LIVRO") == 0) {
-        strcpy(nomeTipoObra,"LIVRO");
-    } else if (strcmp(opcaoObra,"REVISTA") == 0) {
-        strcpy(nomeTipoObra,"REVISTA");
-    }
     caixaTmp = (c+numCaixa);
     contador = 0;
     elementoTmp = caixaTmp->inicio;
-//        printf("%s",elementoTmp->dados_obra->tipo_obra);
     while (elementoTmp != NULL) {
         if (strcmp(elementoTmp->dados_obra->tipo_obra,opcaoObra) == 0) {
             printf("############################\n");
@@ -204,27 +192,19 @@ void listarObraPorCaixa(int numCaixa, char *opcaoObra) {
         }
     }
     if (contador == 0)
-        printf("NENHUM(A) %s ENCONTRADA NA CAIXA %d\n",nomeTipoObra,numCaixa+1);
+        printf("NENHUM(A) %s ENCONTRADA NA CAIXA %d\n",opcaoObra,numCaixa+1);
 }
 void listarTodasAsObras(char *opcaoObra) {
-    system("clear");
     caixa *caixaTmp;
-    caixaTmp = (caixa *) malloc (sizeof(caixa));
     obraElemento* elementoTmp;
-    elementoTmp = (obraElemento *) malloc (qtdCaixas * sizeof(obraElemento));
+    elementoTmp = (obraElemento *) malloc (sizeof(obraElemento));
     int contador;
-    char nomeTipoObra[TAM_STRING];
-    if (strcmp(opcaoObra,"LIVRO") == 0) {
-        strcpy(nomeTipoObra,"LIVRO");
-    } else if (strcmp(opcaoObra,"REVISTA") == 0) {
-        strcpy(nomeTipoObra,"REVISTA");
-    }
     int i;
     for (i = 0; i<qtdCaixas; i++) {
+        caixaTmp = (caixa *) malloc (sizeof(caixa));
         caixaTmp = (c+i);
         contador = 0;
         elementoTmp = caixaTmp->inicio;
-//        printf("%s",elementoTmp->dados_obra->tipo_obra);
         while (elementoTmp != NULL) {
             if (strcmp(elementoTmp->dados_obra->tipo_obra,opcaoObra) == 0) {
                 printf("############################\n");
@@ -246,26 +226,31 @@ void listarTodasAsObras(char *opcaoObra) {
             }
         }
         if (contador == 0)
-            printf("NENHUM(A) %s ENCONTRADA NA CAIXA %d\n",nomeTipoObra,i+1);
+            printf("NENHUM(A) %s ENCONTRADA NA CAIXA %d\n",opcaoObra,i+1);
     }
+}
+void pausar() {
+    printf("\nAperte enter para continuar.\n");
+    getchar();
 }
 void menuSistema() {
     int opcao;
     int opcaoCaixa;
     int caixasTemp;
     while (opcao != 5) {
-        printf("## SISTEMA DE GERENCIAMENTO DE BIBLIOTECA ##\n");
+        system("clear");
+        printf("## SISTEMA DE GERENCIAMENTO DE BIBLIOTECA ###\n");
+        printf("PROPRIETARIO: ALEXANDRE LOHAN / RA: 191106755\n");
         printf("1 - Incluir Obra\n");
         printf("2 - Listas todos os livros\n");
         printf("3 - Listas todas as revistas\n");
         printf("4 - Listas obras por caixa\n");
         printf("5 - Sair\n");
-        printf("PROPRIETARIO: ALEXANDRE LOHAN / RA: 191106755\n");
         scanf("%d", &opcao);
         getchar();
         switch(opcao) {
         case 1:
-               system("clear");
+            system("clear");
             caixasTemp = 0;
             while (caixasTemp != -1) {
                 system("clear");
@@ -282,18 +267,24 @@ void menuSistema() {
             obraDados *obraTmp = registrarObra(opcaoCaixa-1);
             addElementoTxt(obraTmp);
             addElementoCaixa(obraTmp);
-
+            printf("\nOBRA ADICIONADA COM SUCESSO!\n");
+            pausar();
+            system("clear");
             break;
         case 2:
             system("clear");
             listarTodasAsObras("LIVRO");
+            pausar();
+            system("clear");
             break;
         case 3:
             system("clear");
             listarTodasAsObras("REVISTA");
+            pausar();
+            system("clear");
             break;
         case 4:
-               system("clear");
+            system("clear");
             caixasTemp = 0;
             while (caixasTemp != -1) {
                 system("clear");
@@ -309,13 +300,17 @@ void menuSistema() {
             }
             listarObraPorCaixa((opcaoCaixa)-1,"LIVRO");
             listarObraPorCaixa((opcaoCaixa)-1,"REVISTA");
+            pausar();
+            system("clear");
             break;
         case 5:
             fclose(arquivo);
             break;
         default:
-               system("clear");
+            system("clear");
             printf("OPCAO INVALIDA! TENTE NOVAMENTE\n");
+            pausar();
+            system("clear");
             break;
         }
     }
@@ -373,12 +368,13 @@ void selecionaCriarNovaCaixa() {
 
 void selecionaCaixaExistente() {
 // **** BUSCA O ARQUIVO.TXT COM AS OBRAS JA ARMAZENADAS
-    obraDados* dados = (obraDados *) malloc(sizeof(obraDados));
+    obraDados* dados;
     char arquivoBiblioteca[50];
     char delim[] = "\t";
     char buffer[BUFSIZ];
     char *linhaBuffer = 0;
     char *linhaSpliter = 0;
+    char *linhaBufferCpy = 0;
     printf("DIGITE O NOME DO ARQUIVO (EX.: obras.txt). R: ");
     fgets(arquivoBiblioteca, sizeof(char[50]),stdin);
     arquivoBiblioteca[strcspn(arquivoBiblioteca, "\n")] = 0;
@@ -389,24 +385,25 @@ void selecionaCaixaExistente() {
     c = (caixa *) malloc(qtdCaixas * sizeof(caixa));
     inicializarCaixa(c, qtdCaixas);
     while(fgets(buffer, BUFSIZ, arquivo) != NULL) {
+        dados = (obraDados *) malloc(sizeof(obraDados));
         linhaBuffer = strdup(buffer); //  TENTA ALOCAR NA NOVA STRING, MEMORIA SUFICIENTE PARA CONTER A STRING MAIS ANTIGA E +1 CHAR "\0
+        linhaBufferCpy = linhaBuffer;
         linhaSpliter = 0;
-        while ((linhaSpliter = strsep(&linhaBuffer, delim)) != NULL) {
-//            strcpy(dados->caixa,linhaSpliter);
+        while ((linhaSpliter = strsep(&linhaBufferCpy, delim)) != NULL) {
             dados->caixa = strtol(linhaSpliter,NULL,0);
-            linhaSpliter = strsep(&linhaBuffer, delim);
+            linhaSpliter = strsep(&linhaBufferCpy, delim);
             strcpy(dados->tipo_obra,linhaSpliter);
-            linhaSpliter = strsep(&linhaBuffer, delim);
+            linhaSpliter = strsep(&linhaBufferCpy, delim);
             strcpy(dados->titulo,linhaSpliter);
-            linhaSpliter = strsep(&linhaBuffer, delim);
+            linhaSpliter = strsep(&linhaBufferCpy, delim);
             strcpy(dados->autor,linhaSpliter);
-            linhaSpliter = strsep(&linhaBuffer, delim);
+            linhaSpliter = strsep(&linhaBufferCpy, delim);
             strcpy(dados->edicao,linhaSpliter);
-            linhaSpliter = strsep(&linhaBuffer, delim);
+            linhaSpliter = strsep(&linhaBufferCpy, delim);
             strcpy(dados->editora,linhaSpliter);
-            linhaSpliter = strsep(&linhaBuffer, delim);
+            linhaSpliter = strsep(&linhaBufferCpy, delim);
             strcpy(dados->isbn,linhaSpliter);
-            linhaSpliter = strsep(&linhaBuffer, delim);
+            linhaSpliter = strsep(&linhaBufferCpy, delim);
             linhaSpliter[strcspn(linhaSpliter,"\n")] = 0;
             strcpy(dados->qtdExemplares,linhaSpliter);
         }
@@ -415,7 +412,7 @@ void selecionaCaixaExistente() {
 }
 
 int main() {
-// **** DEFINICAO DA QUANTIDADE DE CAIXAS PARA ARMAZENAMENTO DE OBRAS
+// **** DE    FINICAO DA QUANTIDADE DE CAIXAS PARA ARMAZENAMENTO DE OBRAS
     int opcaoInicial;
     while ((opcaoInicial == 0) || (opcaoInicial > 2)) {
         printf("BEM VINDO A BIBLIOTECA DE OBRAS!\n");
