@@ -8,7 +8,6 @@
 FILE *arquivo;
 char arquivoNome[100];
 
-
 //################ ESTRUTURA DO ARQUIVO CSV (COLUNAS) ###################
 
 typedef struct dadosMercadoImobiliarioCsv {
@@ -60,7 +59,7 @@ int main() {
         char *linhaSplit;
         char linha[BUFSIZ];
         char *linhaBuffer = 0;
-        long int contadorLinha = 0;
+        int contadorLinha = 0;
         int contadorPausa = 100;
         int opcaoMenu;
         size_t strlen_data;
@@ -72,6 +71,31 @@ int main() {
         os comandos dentro do while. */
         while (fgets(linha, sizeof(linha), arquivo) != NULL) {
             contadorLinha++;
+                /* o if abaixo pausa da impressao a cada 100 linhas,
+               de acordo com o setado na variavel 'contadorPausa'. Alem de imprimir
+               o cabecalho das proximas sequencias de linhas impressas */
+
+              if (((contadorLinha % contadorPausa) == 0)) {
+                do {
+                    printf("-------------------------------ATENCAO----------------------------\n");
+                    printf("%d Linhas mostradas até o momento. Deseja continuar? (1-Sim/2-Nao): ",contadorLinha);
+                    printf("\n");
+                    printf("-------------------------------ATENCAO----------------------------\n");
+                    scanf("%d",&opcaoMenu);
+                    getchar();
+                    if (opcaoMenu == 1) {
+                        system("clear");
+                        printf("DATA %5s |"," ");
+                        printf(" INFO %47s |"," ");
+                        printf(" VALOR");
+                        printf("\n");
+                        break;
+                    } else if (opcaoMenu == 2) {
+                        printf("--------- ATÉ A PROXIMA!! ---------");
+                        return 0;
+                    }
+                } while (opcaoMenu != 2);
+            }
             linhaBuffer = (char *) malloc (sizeof(linha));
             dados = (dadosCsv *) malloc(sizeof(dadosCsv));
             linhaBuffer = linha;
@@ -96,37 +120,13 @@ int main() {
                 strcat(dados->data," ");
                 strlen_data = strlen(dados->data);
             }
-
-            while(strlen_info != 50) {
+            while(strlen_info != 52) {
                 strcat(dados->info," ");
                 strlen_info = strlen(dados->info);
             }
                /* imprime as linhas ja formatadas */
             printf("%s | %s | %s",dados->data,dados->info,dados->valor);
-               /* o if abaixo pausa da impressao a cada 100 linhas,
-               de acordo com o setado na variavel 'contadorPausa'. Alem de imprimir
-               o cabecalho das proximas sequencias de linhas impressas */
-            if ((contadorLinha % contadorPausa) == 0) {
-                do {
-                    printf("-------------------------------ATENCAO----------------------------\n");
-                    printf("%lu Linhas mostradas até o momento. Deseja continuar? (1-Sim/2-Nao): ",contadorLinha);
-                    printf("\n");
-                    printf("-------------------------------ATENCAO----------------------------\n");
-                    scanf("%d",&opcaoMenu);
-                    getchar();
-                    if (opcaoMenu == 1) {
-                        system("clear");
-                        printf("DATA %5s |"," ");
-                        printf(" INFO %45s |"," ");
-                        printf(" VALOR");
-                        printf("\n");
-                        break;
-                    } else if (opcaoMenu == 2) {
-                        printf("--------- ATÉ A PROXIMA!! ---------");
-                        return 0;
-                    }
-                } while (opcaoMenu != 2);
-            }
+
         }
         pausar();
         printf("--------- ATÉ A PROXIMA!! ---------");
