@@ -6,15 +6,21 @@
 
 //VARIAVEIS GLOBAIS
 FILE *arquivo;
+FILE *arquivoNovo;
 char arquivoNome[100];
+char arquivoNovoNome[100];
 
-//################ ESTRUTURA DO ARQUIVO CSV (COLUNAS) ###################
-
+/* Struct com base nas colunas do arquivo.csv */
 typedef struct dadosMercadoImobiliarioCsv {
     char data[TAM_STRING];
     char info[TAM_STRING];
     char valor[TAM_STRING];
 } dadosCsv;
+
+typedef struct dadosLista {
+    int tamanho;
+    dadosCsv dados;
+} dadosLista;
 
 //################ FUNCOES UTEIS ###################
 
@@ -35,15 +41,93 @@ int get_size(FILE* file_name) {
 
     return size;
 }
+/* grava a lista no arquivoNovo */
+void gravarNoArquivo(dadosLista *lista) {
+    int tamLista = 0;
+    while (tamLista <= lista->tamanho) {
+        fprintf(arquivoNovo,"%s,%s,%s\n",lista[tamLista].dados.valor,lista[tamLista].dados.info,lista[tamLista].dados.data);
+        tamLista++;
+    }
+}
+/* ordena a lista utilizando o metodo bubblesort */
+void bubbleSort(dadosLista *lista) {
+    int i;
+    int j;
+    double aValor;
+    double bValor;
+    dadosCsv dadosTemp;
+    for (i = 0; i<lista->tamanho; i++) {
+        for (j = i+1; j<lista->tamanho; j++) {
+            aValor = strtod(lista[i].dados.valor,NULL);
+            bValor = strtod(lista[j].dados.valor,NULL);
+            if (aValor > bValor) {
+                strcpy(dadosTemp.data,lista[i].dados.data);
+                strcpy(dadosTemp.valor,lista[i].dados.valor);
+                strcpy(dadosTemp.info,lista[i].dados.info);
+                lista[i].dados = lista[j].dados;
+                lista[j].dados = dadosTemp;
+            }
+        }
+    }
+    return;
+}
+/* acrescenta a palavra 'Ordenado' no novo arquivo.csv */
+char* adicionarAntesDo(char str1[], char str2[],char delim) {
+    int i = 0;
+    int j = 0;
+    char *novaString = (char *) malloc(100 * sizeof(char));
+    bzero(novaString,100);
+    for (; i<strlen(str1); i++) {
+        if (str1[i] == delim) {
+            for (; j<strlen(str2); j++) {
+                novaString[i+j] = str2[j];
+            }
+        }
+        if (j > 0) {
+            novaString[j+i] = str1[i];
+        }        else {
+            novaString[i] = str1[i];
+        }
 
+    }
+    return novaString;
+}
+/* remove um caractere da string. no caso criei para
+retirar o \n e o \r das linhas do csv original. */
+void removeChar(char str1[], char c) {
+    int i;
+    for (i = 0; i<strlen(str1); i++) {
+        if (str1[i] == c) {
+            str1[i] = str1[i+1];
+            i++;
+        } else {
+            str1[i] = str1[i];
+        }
+    }
+    return;
+}
+/* retorna a quantidade de linha de um arquivo */
+int linhasArquivo(FILE *arquivo) {
+    arquivo = fopen(arquivoNome,"r");
+    char c = '\n';
+    char enter = '\n';
+    int qtdLinhas = 0;
+    while(fread (&c, sizeof(char), 1, arquivo)) {
+        if(c == enter) {
+            qtdLinhas++;
+        }
+    }
+    fclose(arquivo);
+    return qtdLinhas;
+}
 int main() {
     /* tela inicial do programa */
     printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    printf("Bem vindo ao sistema de navegacao de dados.\n");
+    printf("Bem vindo ao sistema de ordenacao de dados.\n");
     printf("Software desenvolvido por Alexandre Guerreiro / RA - 191106755.\n");
     printf("Curso de Eng. de Software / Disciplina: Estrutura de dados\n");
     printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    printf("Digite o nome do arquivo a ser lido (mercadoimobiliario.csv): ");
+    printf("Digite o nome do arquivo a ser organizado (mercadoimobiliario.csv): ");
     scanf("%s",arquivoNome);
     getchar();
     printf("\n");
@@ -53,83 +137,57 @@ int main() {
         return 0;
     } else {
         /* definicao das variaveis */
-        arquivo = fopen(arquivoNome,"a+");
-        dadosCsv *dados;
+        dadosCsv dados;
+        int linhasArq = linhasArquivo(arquivo);
+        dadosLista *lista;
+        lista = (dadosLista *) malloc((linhasArq+2) * sizeof(dadosCsv));
         char *delimitador = ",";
         char *linhaSplit;
         char linha[BUFSIZ];
         char *linhaBuffer = 0;
         int contadorLinha = 0;
-        int contadorPausa = 100;
-        int opcaoMenu;
-        size_t strlen_data;
-        size_t strlen_info;
-        printf("Iniciando a leitura do arquivo [%s]...\n",arquivoNome);
+        strcpy(arquivoNovoNome,arquivoNome);
+        strcpy(arquivoNovoNome,adicionarAntesDo(arquivoNome,"Ordenado",'.'));
+        arquivoNovo = fopen(arquivoNovoNome,"w+");
+        arquivo = fopen(arquivoNome,"a+");
+        printf("Iniciando a organizacao do arquivo [%s] utlizando o método Bubblesort...\n",arquivoNome);
         pausar();
         /* while de leitura do arquivo. enquanto o fgets nao retorna nulo
         ou seja, enquanto tiver linha no arquivo a ser lida, ele ira executar
         os comandos dentro do while. */
+        printf("Linhas lidas: ");
         while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-            contadorLinha++;
-                /* o if abaixo pausa da impressao a cada 100 linhas,
-               de acordo com o setado na variavel 'contadorPausa'. Alem de imprimir
-               o cabecalho das proximas sequencias de linhas impressas */
-
-              if (((contadorLinha % contadorPausa) == 0)) {
-                do {
-                    printf("-------------------------------ATENCAO----------------------------\n");
-                    printf("%d Linhas mostradas até o momento. Deseja continuar? (1-Sim/2-Nao): ",contadorLinha);
-                    printf("\n");
-                    printf("-------------------------------ATENCAO----------------------------\n");
-                    scanf("%d",&opcaoMenu);
-                    getchar();
-                    if (opcaoMenu == 1) {
-                        system("clear");
-                        printf("DATA %5s |"," ");
-                        printf(" INFO %47s |"," ");
-                        printf(" VALOR");
-                        printf("\n");
-                        break;
-                    } else if (opcaoMenu == 2) {
-                        printf("--------- ATÉ A PROXIMA!! ---------");
-                        return 0;
-                    }
-                } while (opcaoMenu != 2);
-            }
+            /* pega 1 linha do arquivo e joga na struct dadosCsv 'dados' */
             linhaBuffer = (char *) malloc (sizeof(linha));
-            dados = (dadosCsv *) malloc(sizeof(dadosCsv));
             linhaBuffer = linha;
             linhaSplit = (strsep(&linhaBuffer, delimitador));
-            strcpy(dados->data,linhaSplit);
+            strcpy(dados.valor,linhaSplit);
             linhaSplit = (strsep(&linhaBuffer, delimitador));
-            strcpy(dados->info,linhaSplit);
+            strcpy(dados.data,linhaSplit);
             linhaSplit = (strsep(&linhaBuffer, delimitador));
-            strcpy(dados->valor,linhaSplit);
-            linhaSplit = (strsep(&linhaBuffer, delimitador));
-            /* o separador do csv é a virgula. o if abaixo acrescenta o valor
-            depois da virgula da coluna valor no atributo da struct. */
-            if (linhaSplit != NULL) {
-                strcat(dados->valor,",");
-                strcat(dados->valor,linhaSplit);
-            }
-            strlen_data = strlen(dados->data);
-            strlen_info = strlen(dados->info);
-            /* os whiles abaixo padronizam as linhas exibidas, facilitando
-            a leitura pelo usuario das linhas do codigo. */
-            while(strlen_data != 10) {
-                strcat(dados->data," ");
-                strlen_data = strlen(dados->data);
-            }
-            while(strlen_info != 52) {
-                strcat(dados->info," ");
-                strlen_info = strlen(dados->info);
-            }
-               /* imprime as linhas ja formatadas */
-            printf("%s | %s | %s",dados->data,dados->info,dados->valor);
-
+            strcpy(dados.info,linhaSplit);
+            /* remove as quebras do final das linhas */
+            removeChar(dados.info,'\n');
+            removeChar(dados.info,'\r');
+            removeChar(dados.data,'\n');
+            removeChar(dados.data,'\r');
+            removeChar(dados.valor,'\n');
+            removeChar(dados.data,'\r');
+            /* acrescenta na lista */
+            lista[contadorLinha].dados = dados;
+            contadorLinha++;
+            printf(" %d ",contadorLinha);
+            lista->tamanho = contadorLinha;
         }
-        pausar();
-        printf("--------- ATÉ A PROXIMA!! ---------");
+        /* ordena a lista */
+        bubbleSort(lista);
+        /* grava em um novo arquivo ordenado. */
+        gravarNoArquivo(lista);
+        printf("\n--------------FIM-----------------\n");
+        printf("ORDENACAO BUBBLESORT FINALIZADA!\n");
+        printf("TOTAL DE LINHAS ORDENADAS: %d\n",contadorLinha);
+        printf("ARQUIVO [%s] GERADO COM SUCESSO!\n",arquivoNovoNome);
+        printf("--------- ATÉ A PROXIMA!! ---------\n");
         return 0;
     }
 }
